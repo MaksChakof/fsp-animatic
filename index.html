@@ -108,13 +108,15 @@ section.grey{background:#ECE9E3}
 .ph .cap{position:absolute;left:12px;top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.35);padding:5px 7px}
 .ph.h520{height:520px}.ph.h300{height:300px}.ph.h360{height:360px}
 /* фото автора идёт с нами слева (Максим 30.10): .rd — место портрета, липнет (ScrollTrigger pin) с главы 03 до конца 08;
-   .ride — главы справа от него (--ride-l — левый край текста автора); .rd-s — полоска, которая открывает новый кадр */
-.ph.rd{width:round(100%,1px);z-index:30;isolation:isolate;overflow:visible;background:none;margin-left:calc(-1 * max(16px, calc(64px + env(safe-area-inset-left,0px))))}   /* Максим 30.10: к левому краю окна; 02.11: кадры крупнее места портрета, у каждого свой прямоугольник */
-.rd .rd-l{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden}
-.rd .rd-l img{width:100%;height:100%;object-fit:cover;display:block}
-.rd .rd-s{position:absolute;top:0;bottom:auto;height:100%;left:100%;width:2px;margin-left:-1px;background:var(--bg);box-shadow:0 0 14px rgba(0,0,0,.28);opacity:0;z-index:3;pointer-events:none}
-.rd .rd-t{position:absolute;left:12px;bottom:12px;padding:5px 8px;line-height:14px;white-space:nowrap;background:rgba(23,25,28,.86);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;z-index:4}
-.rd .cap{z-index:4}
+   .ride — главы справа от него (--ride-l — левый край текста автора).
+   Дима 02.11, кадры photo в Фигме: один блок, кадры внутри него в одной ячейке сетки, без absolute; первый сверху, затемнение и подпись по макету */
+.ph.rd,.rd .rd-i{display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr)}
+.ph.rd{width:round(100%,1px);z-index:30;isolation:isolate;margin-left:calc(-1 * max(16px, calc(64px + env(safe-area-inset-left,0px))))}   /* Максим 30.10: к левому краю окна */
+.rd .rd-i,.rd .rd-i>*{grid-area:1/1}
+.rd .rd-i{overflow:hidden;background:#000}
+.rd .rd-g{align-self:end;height:33%;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.55))}
+.rd .rd-t{align-self:end;justify-self:start;margin:0 0 14px 16px;white-space:nowrap;color:#fff;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.rd .cap{position:static;align-self:start;justify-self:start;margin:12px}
 section.flat.ride .wrap{max-width:none;padding-left:var(--ride-l,50vw)}
 .ride .row{grid-template-columns:1fr}.ride .row>*{grid-column:1/-1}
 .scene.ride .stage{margin-left:calc(var(--ride-l,50vw) - 24px)}
@@ -708,111 +710,51 @@ footer p{margin:0 0 6px}
      справа налево; полоска плавно вытаскивает фотографию из борта и замещает её — предыдущая не уезжает, а съедается»).
      Место портрета (.ph в главе 03) липнет по центру окна (pin, без добавки прокрутки) до конца главы 08, главы 04–08 стоят
      справа от него. У главы data-dock — кадр, data-dock-t — подпись; глава срабатывает, когда её верх доходит до 70 % окна,
-     назад — когда к 70 % возвращается её низ (устройство виджета telhaclarke). Смена — как Before/After Split Slider из osmo:
-     новый кадр открывается clip-path от полоски, полоска идёт справа налево; оба кадра стоят, новый просто перекрывает старый
-     (Максим: «не уменьшает, не сжимает, не сдвигает — просто начинает перекрывать»), назад — тот же эффект. Темп — наш синус
-     EZV.fx 1,2 с (чужие кривые не берём). ?nodock — без него.
-     02.11, Максим: «фотка дёргается, на секунду опять Максим увеличенный» — рамка росла под новый кадр, а старый кадр лежал в ней
-     по cover и рос вместе с ней (портрет 533 → 637 px и вправо). Теперь место портрета не меняется, у каждого кадра свой неподвижный
-     прямоугольник (.rd-l); старый виден левее фронта и стоит пиксель в пиксель, новый — правее фронта.
-     ?ph= — эксперименты с крупными кадрами: 1 — как было, только без рывка; 2 — лесенка, каждый следующий дом крупнее (SZ);
-     3 — лесенка + дом сначала на весь экран и садится в рамку; 4 — лесенка + панели встают снизу вверх внахлёст; 5 — лесенка + мягкий фронт из сливающихся форм (smooth min) */
+     назад — когда к 70 % возвращается её низ (устройство виджета telhaclarke). ?nodock — без него.
+     02.11, Дима: «через один div, внутри которого три div, как в Фигме; плавнее; inset; следующий кадр в opacity, проявляется вместе с линией».
+     Как в кадрах photo Фигмы (180:65…180:103): все кадры лежат в одном блоке, в одной ячейке сетки, первый сверху (порядок в DOM обратный).
+     Верхний стоит на месте и обрезается clip-path: inset справа налево; нижний лежит сразу под ним, выдвигается за линией и проявляется
+     на чёрном: сдвиг 36 % ширины → 0 (в Фигме +55 px при линии на 155 из 342), opacity 0.2 → 1 (в Фигме чёрный 40 % на середине хода).
+     Назад — та же анимация обратно. Темп — наш синус EZV.fx (чужие кривые не берём), 1,8 с */
   const rideBlocks = $$('[data-dock]').filter((b) => b.dataset.dock);
   const slot = rideBlocks.length ? rideBlocks[0].querySelector('.ph') : null;
   if (slot && !new URLSearchParams(location.search).has('nodock')) {
-    const PH = Math.min(5, Math.max(1, +new URLSearchParams(location.search).get('ph') || 2));   // Максим 02.11: Диме уходит вариант 2
-    const RIDE = EZV.fx, RIDE_D = PH >= 4 ? 1.6 : 1.2, textCol = rideBlocks[0].querySelector('.c6'), ez = gsap.parseEase(RIDE);
-    const setL = () => { const l = textCol.getBoundingClientRect().left; document.documentElement.style.setProperty('--ride-l', Math.round(PH > 1 ? Math.max(l, innerWidth * 0.54) : l) + 'px'); };
+    const RIDE_D = 1.8, OPEN = 'inset(0% 0% 0% 0%)', SHUT = 'inset(0% 100% 0% 0%)', textCol = rideBlocks[0].querySelector('.c6');
+    const setL = () => document.documentElement.style.setProperty('--ride-l', Math.round(textCol.getBoundingClientRect().left) + 'px');
     setL(); ScrollTrigger.addEventListener('refreshInit', setL);
     slot.classList.add('rd');
-    const cap = slot.querySelector('.cap'), strip = document.createElement('i');
-    strip.className = 'rd-s';
+    const cap = slot.querySelector('.cap');
     const L = rideBlocks.map((b, i) => {
-      const w = document.createElement('div'), im = i ? new Image() : slot.querySelector('img'), t = document.createElement('div');
-      w.className = 'rd-l'; if (i) { im.alt = ''; im.src = b.dataset.dock; }
-      t.className = 'rd-t'; t.textContent = b.dataset.dockT || '';   // подпись лежит на своём кадре и открывается вместе с ним (общая плашка на смене висела на бумаге)
-      w.append(im, t); slot.insertBefore(w, cap);
-      w.style.zIndex = i ? 0 : 1; if (i) w.style.clipPath = 'inset(0% 0% 0% 100%)';
-      return { b, w, im, f: 1, g: 1, t0: 0 };
+      const w = document.createElement('div'), im = i ? new Image() : slot.querySelector('img'), g = document.createElement('i'), t = document.createElement('span');
+      w.className = 'rd-i'; g.className = 'rd-g'; t.className = 'rd-t'; t.textContent = b.dataset.dockT || '';
+      if (i) { im.alt = ''; im.src = b.dataset.dock; }
+      w.append(im, g, t); if (!i && cap) w.append(cap);
+      slot.prepend(w);
+      return { w, im };
     });
     let cur = 0, run = null, want = -1;
-    // прямоугольник кадра в долях от места портрета: f — ширина, g — высота, t0 — верх (растёт от середины).
-    // ?ph=1 — по формату кадра (Максим 30.10: «фото домов ещё больше»), ?ph=2…5 — от окна: до колонки текста, лесенкой SZ
-    const SZ = [0, 0.8, 0.9, 1, 1, 1];
-    const place = () => {
-      if (run) return;
-      const bw = slot.offsetWidth, bh = slot.offsetHeight, W = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ride-l')) - 24, H = Math.min(innerHeight - 152, W / 1.15);
-      L.forEach((l, i) => {
-        if (PH > 1 && i) { l.f = W * SZ[i] / bw; l.g = H * SZ[i] / bh; }
-        else { const r = l.im.naturalWidth / l.im.naturalHeight / (4 / 3) || 1; l.f = Math.min(1.28, Math.max(0.8, Math.pow(r, 1.6))); l.g = l.f >= 1 ? 1 + (l.f - 1) * 0.36 : 1 + (1 - l.f) * 0.5; }
-        l.t0 = (1 - l.g) / 2;
-        l.w.style.width = l.f * 100 + '%'; l.w.style.height = l.g * 100 + '%'; l.w.style.top = l.t0 * 100 + '%';
-      });
-    };
-    L.forEach((l) => { if (!(l.im.complete && l.im.naturalWidth)) l.im.addEventListener('load', place); });
-    place(); ScrollTrigger.addEventListener('refresh', place);
-    slot.append(strip);
-    const mix =(x, y, k) => x + (y - x) * k, cl01 = (v) => Math.min(1, Math.max(0, v));
-    const pts = (P, dy) => 'polygon(' + P.map((p) => p[0].toFixed(1) + 'px ' + (p[1] - dy).toFixed(1) + 'px').join(',') + ')';
-    const smin = (a, b, k) => { const h = cl01(0.5 + 0.5 * (b - a) / k); return mix(b, a, h) - k * h * (1 - h); };
     const swap = (j) => {
       if (run) { want = j; return; }   // прежняя смена не доиграла (быстрая прокрутка): не обрываем (был скачок), новая — сразу за ней
       if (j === cur) return;
-      const a = L[cur], b = L[j], st = { t: 0 }, bw = slot.offsetWidth, bh = slot.offsetHeight;
+      const a = Math.min(cur, j), b = Math.max(cur, j), up = L[a], low = L[b], back = j < cur;
+      L.forEach((l, i) => { if (i > a && i < b) gsap.set(l.w, { clipPath: SHUT }); });   // кадры между ними (перескок глав) не мешают: нижний сразу под верхним
       cur = j;
-      L.forEach((l) => { l.w.style.zIndex = l === b ? 2 : l === a ? 1 : 0; if (l !== a && l !== b) l.w.style.clipPath = 'inset(0% 0% 0% 100%)'; });
-      a.w.style.clipPath = 'none'; gsap.set(a.im, { scale: 1 });
-      const A = { w: a.f * bw, t: a.t0 * bh, h: a.g * bh };   // старый кадр, px от места портрета
-      const screen = PH === 3 && j > 0;   // ?ph=3: новый дом сначала на весь окно (к портрету — без этого)
-      const B = screen ? { w: innerWidth, t: -(innerHeight - bh) / 2, h: innerHeight } : { w: b.f * bw, t: b.t0 * bh, h: b.g * bh };
-      if (screen) { b.w.style.width = B.w + 'px'; b.w.style.height = B.h + 'px'; b.w.style.top = B.t + 'px'; }
-      const S = screen ? B : A;   // откуда открывается новый кадр: от правого края старого (на весь экран — от края окна)
-      const top = Math.min(A.t, B.t), bot = Math.max(A.t + A.h, B.t + B.h), U = Math.max(A.w, B.w), H = bot - top;
-      const draw = PH === 4 ? (T) => {   // панели: встают снизу вверх, справа налево, каждая со своим синусом, внахлёст
-        const N = 5, s = 0.5, C = [];
-        for (let i = 0; i < N; i++) { const y = bot - ez(cl01((T - i * (1 - s) / (N - 1)) / s)) * H; C.push([U * (1 - i / N), y], [U * (1 - (i + 1) / N), y]); }
-        b.w.style.clipPath = pts([...C, [0, bot], [U, bot]], B.t);
-        a.w.style.clipPath = pts([...C, [0, top], [U, top]], A.t);
-      } : PH === 5 ? (T) => {   // мягкий фронт: четыре волны разной скорости, край один, без островков, стыки сливаются smooth min
-        const D = [0.12, 0, 0.2, 0.06], Y = [0.105, 0.39, 0.615, 0.895], K = H * 0.16, BIG = U + H, e = ez(T);
-        const F = Y.map((v, i) => { const k = ez(cl01((T - D[i]) / 0.8)), r = H * mix(0.1, 0.22, k); return { y: top + v * H, r, h: mix(A.w + r, r * 0.6, k) }; });
-        const front = (y) => F.reduce((v, f) => { const d = Math.abs(y - f.y); return smin(v, d < f.r ? f.h - Math.sqrt(f.r * f.r - d * d) : f.h + (d - f.r) * 8, K); }, BIG);
-        const re = mix(A.w, B.w, e), te = mix(A.t, B.t, e), he = mix(A.h, B.h, e), M = 140, Pb = [], Pa = [];
-        for (let i = 0; i <= M; i++) { const y = te + he * i / M; Pb.push([Math.min(front(y), re), y]); }
-        for (let i = 0; i <= M; i++) { const y = A.t + A.h * i / M; Pa.push([Math.max(0, Math.min(front(y), A.w)), y]); }
-        b.w.style.clipPath = pts([...Pb, [re, te + he], [re, te]], B.t);
-        a.w.style.clipPath = pts([...Pa, [0, A.t + A.h], [0, A.t]], A.t);
-      } : (T) => {   // полоска справа налево: новый кадр правее неё, старый левее, оба стоят
-        const e = ez(T), x = S.w * (1 - e), re = mix(S.w, B.w, e), te = mix(S.t, B.t, e), he = mix(S.h, B.h, e);
-        b.w.style.clipPath = `inset(${Math.max(0, te - B.t)}px ${Math.max(0, B.w - re)}px ${Math.max(0, B.t + B.h - te - he)}px ${x}px)`;
-        a.w.style.clipPath = `inset(0px ${Math.max(0, A.w - x)}px 0px 0px)`;
-        const sTop = Math.min(te, x < A.w ? A.t : te), sBot = Math.max(te + he, x < A.w ? A.t + A.h : te + he);
-        strip.style.left = x + 'px'; strip.style.top = sTop + 'px'; strip.style.height = sBot - sTop + 'px';
-        strip.style.opacity = Math.min(1, T / 0.08, (1 - T) / 0.08);
-      };
-      draw(0);
-      run = gsap.timeline({ onComplete: () => {
-        b.w.style.clipPath = 'none'; a.w.style.clipPath = 'inset(0% 0% 0% 100%)'; strip.style.opacity = 0;
+      const end = () => {
+        gsap.set(low.im, { clearProps: 'transform,opacity' });
+        L.forEach((l, i) => gsap.set(l.w, { clipPath: i < cur ? SHUT : OPEN }));   // выше текущего — убраны, ниже — ждут под ним
         run = null;
         if (want >= 0) { const k = want; want = -1; swap(k); }
-      } })
-        .to(st, { t: 1, duration: RIDE_D, ease: 'none', onUpdate: () => draw(st.t) }, 0);
-      if (j) run.fromTo(b.im, { scale: 1.35 }, { scale: 1, duration: RIDE_D * 1.25, ease: RIDE }, 0);   // дом садится из приближения, как у референса; портрет — без него
-      else gsap.set(b.im, { scale: 1 });
-      if (screen) {   // ?ph=3: постоял на весь экран — садится в свою рамку
-        const k = { v: 0 }, E = { w: b.f * bw, t: b.t0 * bh, h: b.g * bh };
-        run.to(k, { v: 1, duration: 1.3, ease: RIDE, onUpdate: () => {
-          b.w.style.clipPath = 'none';
-          b.w.style.width = mix(B.w, E.w, k.v) + 'px'; b.w.style.height = mix(B.h, E.h, k.v) + 'px'; b.w.style.top = mix(B.t, E.t, k.v) + 'px';
-        }, onComplete: () => { b.w.style.width = b.f * 100 + '%'; b.w.style.height = b.g * 100 + '%'; b.w.style.top = b.t0 * 100 + '%'; } }, RIDE_D + 0.25);
-      }
-      if (cap) gsap.to(cap, { autoAlpha: j ? 0 : 1, duration: 0.4, delay: j ? 0 : RIDE_D * 0.85, overwrite: 'auto' });   // подпись портрета — когда он закрыл её угол
+      };
+      run = gsap.timeline({ paused: true, defaults: { duration: RIDE_D, ease: EZV.fx }, onComplete: end, onReverseComplete: end })
+        .fromTo(up.w, { clipPath: OPEN }, { clipPath: SHUT }, 0)
+        .fromTo(low.im, { xPercent: 36, opacity: 0.2 }, { xPercent: 0, opacity: 1 }, 0);
+      if (back) run.progress(1, true).reverse(); else run.play();
     };
     const pinST = ScrollTrigger.create({ trigger: slot, start: 'center center', endTrigger: '#who',
       end: () => 'bottom ' + Math.round((innerHeight + slot.offsetHeight) / 2) + 'px',
       pin: true, pinSpacing: false, pinReparent: true, invalidateOnRefresh: true });
     rideBlocks.forEach((b, i) => ScrollTrigger.create({ trigger: b, start: 'top 70%', end: 'bottom 70%', onEnter: () => swap(i), onEnterBack: () => swap(i) }));
-    window.__ride = { L, swap, slot, pinST, PH, get run() { return run; } };
+    window.__ride = { L, swap, slot, pinST, get run() { return run; } };
     // ?rd — вкладка для показа: сразу на остановке «портрет прилип», один жест — смена фото
     // (скрытая панель браузера грузит страницу при окне 0×0, остановка потом считается заново — встаём на неё после каждого пересчёта, пока не листали)
     if (new URLSearchParams(location.search).has('rd')) {
